@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext, createContext } from "react";
 import type { ChangeEvent } from "react";
 import { WrapText, Minimize, ShieldCheck, Wand2, CheckCircle, XCircle, Wrench, ListTree } from "lucide-react";
 
@@ -13,7 +13,7 @@ import { explainJsonError, type ExplainJsonErrorOutput } from "@/ai/flows/explai
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JsonTreeView } from "./JsonTreeView";
-
+import { JsonConverter } from "./JsonConverter";
 
 type ValidationStatus = "idle" | "success" | "error";
 type JsonView = "raw" | "tree";
@@ -32,11 +32,19 @@ const initialJson = `{
   "bugs": null
 }`;
 
+export const JsonContext = createContext<{
+  jsonString: string;
+  parsedJson: any;
+  validationStatus: ValidationStatus;
+  setJsonString: (json: string) => void;
+} | null>(null);
+
+
 export function JsonTool() {
   const [jsonString, setJsonString] = useState<string>(initialJson);
   const [parsedJson, setParsedJson] = useState<any>(JSON.parse(initialJson));
-  const [validationStatus, setValidationStatus] = useState<ValidationStatus>("idle");
-  const [validationMessage, setValidationMessage] = useState<string>("");
+  const [validationStatus, setValidationStatus] = useState<ValidationStatus>("success");
+  const [validationMessage, setValidationMessage] = useState<string>("JSON is valid!");
   const [aiExplanation, setAiExplanation] = useState<ExplainJsonErrorOutput | null>(null);
   const [isAIExplanationLoading, setIsAIExplanationLoading] = useState<boolean>(false);
   const [activeView, setActiveView] = useState<JsonView>("raw");
@@ -50,9 +58,16 @@ export function JsonTool() {
       setAiExplanation(null);
     }
     try {
-        setParsedJson(JSON.parse(newJsonString));
-    } catch {
-        // Ignore parsing errors while typing
+        const parsed = JSON.parse(newJsonString);
+        setParsedJson(parsed);
+        setValidationStatus("success");
+        setValidationMessage("JSON is valid!");
+    } catch (error) {
+        if (error instanceof Error) {
+            setValidationStatus("error");
+            setValidationMessage(error.message);
+            setParsedJson(null);
+        }
     }
   };
 
@@ -150,11 +165,16 @@ export function JsonTool() {
       const fixedJsonString = aiExplanation.suggestedFix;
       setJsonString(fixedJsonString);
       try {
-        setParsedJson(JSON.parse(fixedJsonString));
-      } catch {
-        // If the fix is still invalid, we'll catch it on next validation
+        const parsed = JSON.parse(fixedJsonString);
+        setParsedJson(parsed);
+        setValidationStatus("success");
+        setValidationMessage("JSON is valid!");
+      } catch (error) {
+        if (error instanceof Error) {
+          setValidationStatus("error");
+          setValidationMessage(error.message);
+        }
       }
-      setValidationStatus("idle");
       setAiExplanation(null);
       toast({
         title: "Fix Applied",
@@ -164,71 +184,55 @@ export function JsonTool() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl mx-auto">
-      <Card className="lg:col-span-1 h-full flex flex-col">
-        <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <CardTitle>JSON Input</CardTitle>
-            <CardDescription>Paste your JSON code below.</CardDescription>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={handleFormat} disabled={!jsonString || activeView === 'tree'}>
-              <WrapText className="mr-2 h-4 w-4" />
-              Format
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleMinify} disabled={!jsonString || activeView === 'tree'}>
-              <Minimize className="mr-2 h-4 w-4" />
-              Minify
-            </Button>
-            <Button size="sm" onClick={handleValidate} disabled={!jsonString}>
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              Validate
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-grow flex flex-col">
-           <Tabs value={activeView} onValueChange={(value) => setActiveView(value as JsonView)} className="flex-grow flex flex-col">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="raw">
-                <WrapText className="mr-2 h-4 w-4" /> Raw
-              </TabsTrigger>
-              <TabsTrigger value="tree" disabled={validationStatus === 'error'}>
-                <ListTree className="mr-2 h-4 w-4" /> Tree View
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="raw" className="flex-grow mt-4">
-              <Textarea
-                value={jsonString}
-                onChange={handleJsonChange}
-                placeholder="Enter your JSON here..."
-                className="w-full h-[60vh] font-code text-sm resize-none bg-background"
-                aria-label="JSON Input"
-              />
-            </TabsContent>
-            <TabsContent value="tree" className="flex-grow mt-4 overflow-auto h-[60vh]">
-              <JsonTreeView data={parsedJson} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      <div className="lg:col-span-1 space-y-6">
-        {validationStatus === "idle" && (
-          <Card className="flex items-center justify-center h-full min-h-[200px] border-dashed">
-            <div className="text-center text-muted-foreground p-8">
-              <ShieldCheck className="mx-auto h-12 w-12" />
-              <p className="mt-4 font-medium">Ready to Validate</p>
-              <p className="mt-1 text-sm">Results of your JSON operations will appear here.</p>
+    <JsonContext.Provider value={{ jsonString, parsedJson, validationStatus, setJsonString }}>
+      <div className="lg:col-span-1 flex flex-col gap-6">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <CardTitle>JSON Input</CardTitle>
+              <CardDescription>Paste your JSON code below.</CardDescription>
             </div>
-          </Card>
-        )}
-        {validationStatus === "success" && (
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertTitle>Success!</AlertTitle>
-            <AlertDescription>{validationMessage}</AlertDescription>
-          </Alert>
-        )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={handleFormat} disabled={!jsonString || activeView === 'tree'}>
+                <WrapText className="mr-2 h-4 w-4" />
+                Format
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleMinify} disabled={!jsonString || activeView === 'tree'}>
+                <Minimize className="mr-2 h-4 w-4" />
+                Minify
+              </Button>
+              <Button size="sm" onClick={handleValidate} disabled={!jsonString}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Validate
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow flex flex-col">
+             <Tabs value={activeView} onValueChange={(value) => setActiveView(value as JsonView)} className="flex-grow flex flex-col">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="raw">
+                  <WrapText className="mr-2 h-4 w-4" /> Raw
+                </TabsTrigger>
+                <TabsTrigger value="tree" disabled={validationStatus === 'error'}>
+                  <ListTree className="mr-2 h-4 w-4" /> Tree View
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="raw" className="flex-grow mt-4">
+                <Textarea
+                  value={jsonString}
+                  onChange={handleJsonChange}
+                  placeholder="Enter your JSON here..."
+                  className="w-full h-[50vh] font-code text-sm resize-none bg-background"
+                  aria-label="JSON Input"
+                />
+              </TabsContent>
+              <TabsContent value="tree" className="flex-grow mt-4 overflow-auto h-[50vh]">
+                <JsonTreeView data={parsedJson} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
         {validationStatus === "error" && (
           <Alert variant="destructive">
             <XCircle className="h-4 w-4" />
@@ -289,6 +293,6 @@ export function JsonTool() {
           </Card>
         )}
       </div>
-    </div>
+    </JsonContext.Provider>
   );
 }
