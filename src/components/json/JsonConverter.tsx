@@ -49,34 +49,44 @@ export function JsonConverter() {
 
   useEffect(() => {
     handleConversion(activeTab);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonContext?.jsonString, jsonContext?.validationStatus, activeTab]);
 
   const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(convertedCode);
-    toast({
-      title: "Copied to Clipboard",
-      description: `${activeTab.toUpperCase()} code has been copied.`,
-    });
+    if (convertedCode) {
+      navigator.clipboard.writeText(convertedCode);
+      toast({
+        title: "Copied to Clipboard",
+        description: `${activeTab.toUpperCase()} code has been copied.`,
+      });
+    }
   };
 
   const renderContent = () => {
     if (jsonContext?.validationStatus !== 'success') {
       return (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-              <p>Please provide valid JSON to see the conversion.</p>
+          <div className="flex items-center justify-center h-full text-muted-foreground p-4 text-center">
+              <p>Please provide valid JSON in the input area to see the conversion.</p>
           </div>
       );
     }
 
     if (isLoading) {
-      return <Skeleton className="w-full h-full" />;
+      return (
+        <div className="p-4 space-y-2">
+            <Skeleton className="h-6 w-1/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+        </div>
+      );
     }
 
     return (
       <Textarea
         readOnly
         value={convertedCode}
-        className="w-full h-full font-code text-sm resize-none bg-muted/20"
+        className="w-full h-full font-code text-sm resize-none bg-muted/20 border-0 focus-visible:ring-0"
         placeholder={`Converted ${activeTab.toUpperCase()} will appear here...`}
       />
     );
@@ -88,7 +98,7 @@ export function JsonConverter() {
         <div className="flex items-center justify-between">
             <div>
                 <CardTitle>Multi-Format Converter</CardTitle>
-                <CardDescription>Convert JSON to other formats.</CardDescription>
+                <CardDescription>Convert valid JSON to other data formats.</CardDescription>
             </div>
             <div className="flex gap-2">
                 <Button variant="ghost" size="icon" onClick={() => handleConversion(activeTab)} disabled={isLoading || jsonContext?.validationStatus !== 'success'}>
@@ -111,9 +121,9 @@ export function JsonConverter() {
             <TabsTrigger value="xml">XML</TabsTrigger>
             <TabsTrigger value="toml">TOML</TabsTrigger>
           </TabsList>
-          <TabsContent value={activeTab} className="flex-grow mt-4 h-[40vh]">
+          <div className="flex-grow mt-4 rounded-md bg-muted/30 border data-[status=invalid]:flex data-[status=invalid]:items-center data-[status=invalid]:justify-center" data-status={jsonContext?.validationStatus !== 'success' ? 'invalid' : 'valid'}>
             {renderContent()}
-          </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>
