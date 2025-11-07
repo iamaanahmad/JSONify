@@ -19,7 +19,7 @@ export type ExplainJsonErrorInput = z.infer<typeof ExplainJsonErrorInputSchema>;
 
 const ExplainJsonErrorOutputSchema = z.object({
   explanation: z.string().describe('The explanation of the JSON syntax error.'),
-  suggestedFix: z.string().describe('The suggested fix for the JSON syntax error.'),
+  suggestedFix: z.string().describe('The suggested corrected JSON string.'),
 });
 export type ExplainJsonErrorOutput = z.infer<typeof ExplainJsonErrorOutputSchema>;
 
@@ -31,16 +31,16 @@ const explainJsonErrorPrompt = ai.definePrompt({
   name: 'explainJsonErrorPrompt',
   input: {schema: ExplainJsonErrorInputSchema},
   output: {schema: ExplainJsonErrorOutputSchema},
-  prompt: `You are a helpful assistant that explains JSON syntax errors and suggests fixes.
-  The JSON string is: {{{jsonString}}}
-  The error message is: {{{errorMessage}}}
-  Explain the error and suggest a fix.
-  Be concise and use technical terms.
-  Respond in the following format:
-  {
-    "explanation": "explanation of the error",
-    "suggestedFix": "suggested fix for the error"
-  }`,
+  prompt: `You are a helpful assistant that explains JSON syntax errors and provides a corrected JSON as a fix.
+The user has provided the following JSON string which has an error:
+\`\`\`json
+{{{jsonString}}}
+\`\`\`
+
+The error message is: \`{{{errorMessage}}}\`
+
+1.  First, explain the error in a concise and technical way.
+2.  Second, provide the fully corrected JSON string in the 'suggestedFix' field. The corrected string should be a complete and valid JSON document. Do not just provide a snippet.`,
 });
 
 const explainJsonErrorFlow = ai.defineFlow(

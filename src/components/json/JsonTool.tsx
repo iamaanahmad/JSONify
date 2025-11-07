@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ChangeEvent } from "react";
-import { WrapText, Minimize, ShieldCheck, Wand2, CheckCircle, XCircle } from "lucide-react";
+import { WrapText, Minimize, ShieldCheck, Wand2, CheckCircle, XCircle, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { explainJsonError, type ExplainJsonErrorOutput } from "@/ai/flows/explain-json-error";
+import { useToast } from "@/hooks/use-toast";
+
 
 type ValidationStatus = "idle" | "success" | "error";
 
@@ -33,6 +35,7 @@ export function JsonTool() {
   const [validationMessage, setValidationMessage] = useState<string>("");
   const [aiExplanation, setAiExplanation] = useState<ExplainJsonErrorOutput | null>(null);
   const [isAIExplanationLoading, setIsAIExplanationLoading] = useState<boolean>(false);
+  const { toast } = useToast();
 
   const handleJsonChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setJsonString(e.target.value);
@@ -123,6 +126,18 @@ export function JsonTool() {
       });
     } finally {
       setIsAIExplanationLoading(false);
+    }
+  };
+
+  const handleApplyFix = () => {
+    if (aiExplanation?.suggestedFix) {
+      setJsonString(aiExplanation.suggestedFix);
+      setValidationStatus("idle");
+      setAiExplanation(null);
+      toast({
+        title: "Fix Applied",
+        description: "The suggested fix has been applied to the JSON input.",
+      })
     }
   };
 
@@ -223,7 +238,15 @@ export function JsonTool() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground mb-2">Suggested Fix</h3>
-                <p className="text-sm text-muted-foreground font-code bg-muted p-3 rounded-md break-words">{aiExplanation.suggestedFix}</p>
+                <div className="font-code bg-muted p-3 rounded-md break-words text-sm text-muted-foreground">
+                  <pre><code>{aiExplanation.suggestedFix}</code></pre>
+                </div>
+              </div>
+              <div className="pt-2">
+                <Button onClick={handleApplyFix} size="sm">
+                  <Wrench className="mr-2 h-4 w-4" />
+                  Apply Fix
+                </Button>
               </div>
             </CardContent>
           </Card>
