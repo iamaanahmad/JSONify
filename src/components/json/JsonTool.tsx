@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JsonTreeView } from "./JsonTreeView";
 import { JsonConverter } from "./JsonConverter";
+import { JsonSecurityTool } from "./JsonSecurityTool";
 
 type ValidationStatus = "idle" | "success" | "error";
 type JsonView = "raw" | "tree";
@@ -29,19 +30,26 @@ const initialJson = `{
     "AI Error Explanation"
   ],
   "isAwesome": true,
-  "bugs": null
+  "bugs": null,
+  "userProfile": {
+    "login": "testuser",
+    "email": "test@example.com",
+    "password": "supersecretpassword123",
+    "apiKey": "q9a8s7d6f5g4h3j2k1l0",
+    "session_token": "asdasd987a9s8d7a9s8d79a8sd7"
+  }
 }`;
 
 export const JsonContext = createContext<{
   jsonString: string;
   parsedJson: any;
   validationStatus: ValidationStatus;
-  setJsonString: (json: string) => void;
+  setJsonString: (json: string, skipValidation?: boolean) => void;
 } | null>(null);
 
 
 export function JsonTool() {
-  const [jsonString, setJsonString] = useState<string>(initialJson);
+  const [jsonString, setJsonStringState] = useState<string>(initialJson);
   const [parsedJson, setParsedJson] = useState<any>(JSON.parse(initialJson));
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>("success");
   const [validationMessage, setValidationMessage] = useState<string>("JSON is valid!");
@@ -50,9 +58,10 @@ export function JsonTool() {
   const [activeView, setActiveView] = useState<JsonView>("raw");
   const { toast } = useToast();
 
-  const handleJsonChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const newJsonString = e.target.value;
-    setJsonString(newJsonString);
+  const setJsonString = (newJsonString: string, skipValidation = false) => {
+    setJsonStringState(newJsonString);
+    if (skipValidation) return;
+
     if (validationStatus !== "idle") {
       setValidationStatus("idle");
       setAiExplanation(null);
@@ -71,6 +80,10 @@ export function JsonTool() {
     }
   };
 
+  const handleJsonChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setJsonString(e.target.value);
+  };
+
   const handleFormat = () => {
     if (!jsonString.trim()) {
         setValidationStatus("error");
@@ -81,10 +94,6 @@ export function JsonTool() {
       const parsed = JSON.parse(jsonString);
       const formattedJson = JSON.stringify(parsed, null, 2);
       setJsonString(formattedJson);
-      setParsedJson(parsed);
-      setValidationStatus("success");
-      setValidationMessage("JSON formatted successfully.");
-      setAiExplanation(null);
     } catch (error) {
       if (error instanceof Error) {
         setValidationStatus("error");
@@ -104,10 +113,6 @@ export function JsonTool() {
       const parsed = JSON.parse(jsonString);
       const minifiedJson = JSON.stringify(parsed);
       setJsonString(minifiedJson);
-      setParsedJson(parsed);
-      setValidationStatus("success");
-      setValidationMessage("JSON minified successfully.");
-      setAiExplanation(null);
     } catch (error) {
       if (error instanceof Error) {
         setValidationStatus("error");
@@ -124,17 +129,16 @@ export function JsonTool() {
         return;
     }
     try {
-      const parsed = JSON.parse(jsonString);
-      setParsedJson(parsed);
-      setValidationStatus("success");
-      setValidationMessage("JSON is valid!");
-      setAiExplanation(null);
+      JSON.parse(jsonString);
+      // setJsonString will trigger re-validation, so we just call it.
+      setJsonString(jsonString);
     } catch (error) {
-      if (error instanceof Error) {
-        setValidationStatus("error");
-        setValidationMessage(error.message);
-        setAiExplanation(null);
-      }
+        if (error instanceof Error) {
+          setValidationStatus("error");
+          setValidationMessage(error.message);
+          setParsedJson(null);
+          setAiExplanation(null);
+        }
     }
   };
 
@@ -164,17 +168,6 @@ export function JsonTool() {
     if (aiExplanation?.suggestedFix) {
       const fixedJsonString = aiExplanation.suggestedFix;
       setJsonString(fixedJsonString);
-      try {
-        const parsed = JSON.parse(fixedJsonString);
-        setParsedJson(parsed);
-        setValidationStatus("success");
-        setValidationMessage("JSON is valid!");
-      } catch (error) {
-        if (error instanceof Error) {
-          setValidationStatus("error");
-          setValidationMessage(error.message);
-        }
-      }
       setAiExplanation(null);
       toast({
         title: "Fix Applied",
@@ -294,8 +287,9 @@ export function JsonTool() {
             </Card>
             )}
         </div>
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 flex flex-col gap-6">
             <JsonConverter />
+            <JsonSecurityTool />
         </div>
       </div>
     </JsonContext.Provider>
