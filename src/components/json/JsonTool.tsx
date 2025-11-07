@@ -185,7 +185,7 @@ export function JsonTool() {
 
   return (
     <JsonContext.Provider value={{ jsonString, parsedJson, validationStatus, setJsonString }}>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl mx-auto h-full">
         <div className="lg:col-span-1 flex flex-col gap-6">
             <Card className="h-full flex flex-col">
             <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -223,11 +223,11 @@ export function JsonTool() {
                     value={jsonString}
                     onChange={handleJsonChange}
                     placeholder="Enter your JSON here..."
-                    className="w-full h-[50vh] font-code text-sm resize-none bg-background"
+                    className="w-full h-full font-code text-sm resize-none bg-background"
                     aria-label="JSON Input"
                     />
                 </TabsContent>
-                <TabsContent value="tree" className="flex-grow mt-4 overflow-auto h-[50vh]">
+                <TabsContent value="tree" className="flex-grow mt-4 h-full">
                     <JsonTreeView data={parsedJson} />
                 </TabsContent>
                 </Tabs>
