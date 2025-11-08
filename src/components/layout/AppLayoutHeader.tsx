@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react"
+import { cn } from "@/lib/utils";
 
 const AppLayoutHeader = React.forwardRef<
   HTMLDivElement,
@@ -9,7 +10,7 @@ const AppLayoutHeader = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={className}
+      className={cn(className)}
       data-layout="header"
       {...props}
     />

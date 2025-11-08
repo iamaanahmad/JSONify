@@ -13,10 +13,6 @@ import { Header } from '@/components/layout/Header';
 export default function Home() {
   return (
     <AppLayout>
-      <AppLayoutHeader>
-        <Header />
-      </AppLayoutHeader>
-      
       <AppLayoutSidebar>
         <div className="flex flex-col h-full p-4 gap-6">
           <div className="flex items-center gap-2">
@@ -38,8 +34,10 @@ export default function Home() {
           <JsonPerformanceAnalyzer />
         </div>
       </AppLayoutSidebar>
-
       <AppLayoutMain>
+        <AppLayoutHeader>
+          <Header />
+        </AppLayoutHeader>
         <JsonTool />
       </AppLayoutMain>
     </AppLayout>
