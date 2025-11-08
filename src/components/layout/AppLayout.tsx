@@ -11,15 +11,6 @@ import {
 type AppLayoutContext = {}
 const AppLayoutContext = React.createContext<AppLayoutContext | null>(null)
 
-function useAppLayout() {
-  const context = React.useContext(AppLayoutContext)
-  if (!context) {
-    throw new Error("useAppLayout must be used within an AppLayout.")
-  }
-
-  return context
-}
-
 type AppLayoutProps = React.ComponentProps<typeof SidebarProvider>
 function AppLayout({ children, ...props }: AppLayoutProps) {
   const contextValue = React.useMemo<AppLayoutContext>(() => ({}), [])
@@ -76,8 +67,8 @@ const AppLayoutSidebar = React.forwardRef<
 })
 AppLayoutSidebar.displayName = "AppLayoutSidebar"
 
-AppLayout.Header = AppLayoutHeader
-AppLayout.Main = AppLayoutMain
-AppLayout.Sidebar = AppLayoutSidebar
+AppLayout.Header = AppLayoutHeader;
+AppLayout.Main = AppLayoutMain;
+AppLayout.Sidebar = AppLayoutSidebar;
 
-export { AppLayout, useAppLayout }
+export { AppLayout };
