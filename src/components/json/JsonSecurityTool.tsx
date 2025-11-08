@@ -71,7 +71,7 @@ export function JsonSecurityTool() {
                 <ShieldCheck className="h-4 w-4 !text-green-500" />
                 <AlertTitle>No Secrets Found</AlertTitle>
                 <AlertDescription>
-                    The AI scanner did not find any obvious sensitive data in your JSON.
+                    The AI scanner did not find any obvious sensitive data.
                 </AlertDescription>
             </Alert>
         )
@@ -83,7 +83,7 @@ export function JsonSecurityTool() {
                 <ShieldAlert className="h-4 w-4" />
                 <AlertTitle>Potential Secrets Found!</AlertTitle>
                 <AlertDescription>
-                    The AI found {scanResult.redactedKeys.length} item(s) that might be sensitive.
+                    Found {scanResult.redactedKeys.length} item(s) that might be sensitive.
                 </AlertDescription>
             </Alert>
 
@@ -93,14 +93,14 @@ export function JsonSecurityTool() {
                 ))}
             </div>
 
-            <div className="relative rounded-md bg-muted/30 border p-4 font-code text-sm">
+            <div className="relative rounded-md bg-muted/30 border p-4 font-code text-sm max-h-48 overflow-y-auto">
                 <pre><code>{showOriginal ? jsonContext?.jsonString : scanResult.redactedJson}</code></pre>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => setShowOriginal(!showOriginal)}>
+                <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => setShowOriginal(!showOriginal)}>
                     {showOriginal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
             </div>
 
-            <Button onClick={handleApplyRedaction}>
+            <Button onClick={handleApplyRedaction} size="sm">
                 <Check className="mr-2 h-4 w-4" />
                 Apply Redaction
             </Button>
@@ -111,11 +111,10 @@ export function JsonSecurityTool() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Secure Mode</CardTitle>
-        <CardDescription>Scan your JSON for sensitive data like passwords or API keys and redact them.</CardDescription>
+        <CardTitle className="text-base">Secure Mode</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button onClick={handleScan} disabled={isLoading || jsonContext?.validationStatus !== 'success'}>
+        <Button onClick={handleScan} disabled={isLoading || jsonContext?.validationStatus !== 'success'} className="w-full">
             <Wand2 className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             {isLoading ? "Scanning..." : "Scan with AI"}
         </Button>

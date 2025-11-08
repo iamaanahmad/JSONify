@@ -66,7 +66,7 @@ export function JsonConverter() {
     if (jsonContext?.validationStatus !== 'success') {
       return (
           <div className="flex items-center justify-center h-full text-muted-foreground p-4 text-center">
-              <p>Please provide valid JSON in the input area to see the conversion.</p>
+              <p>Valid JSON required.</p>
           </div>
       );
     }
@@ -96,15 +96,12 @@ export function JsonConverter() {
     <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
-            <div>
-                <CardTitle>Multi-Format Converter</CardTitle>
-                <CardDescription>Convert valid JSON to other data formats.</CardDescription>
-            </div>
+            <CardTitle className="text-base">Converter</CardTitle>
             <div className="flex gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleConversion(activeTab)} disabled={isLoading || jsonContext?.validationStatus !== 'success'}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleConversion(activeTab)} disabled={isLoading || jsonContext?.validationStatus !== 'success'}>
                     <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleCopyToClipboard} disabled={!convertedCode || isLoading}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyToClipboard} disabled={!convertedCode || isLoading}>
                     <Copy className="h-4 w-4" />
                 </Button>
             </div>

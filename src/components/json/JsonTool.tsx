@@ -13,9 +13,6 @@ import { explainJsonError, type ExplainJsonErrorOutput } from "@/ai/flows/explai
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JsonTreeView } from "./JsonTreeView";
-import { JsonConverter } from "./JsonConverter";
-import { JsonSecurityTool } from "./JsonSecurityTool";
-import { JsonPerformanceAnalyzer } from "./JsonPerformanceAnalyzer";
 
 type ValidationStatus = "idle" | "success" | "error";
 type JsonView = "raw" | "tree";
@@ -179,121 +176,122 @@ export function JsonTool() {
 
   return (
     <JsonContext.Provider value={{ jsonString, parsedJson, validationStatus, setJsonString }}>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl mx-auto h-full">
-        <div className="lg:col-span-1 flex flex-col gap-6">
-            <Card className="h-full flex flex-col">
-            <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                <CardTitle>JSON Input</CardTitle>
-                <CardDescription>Paste your JSON code below.</CardDescription>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" onClick={handleFormat} disabled={!jsonString || activeView === 'tree'}>
-                    <WrapText className="mr-2 h-4 w-4" />
-                    Format
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleMinify} disabled={!jsonString || activeView === 'tree'}>
-                    <Minimize className="mr-2 h-4 w-4" />
-                    Minify
-                </Button>
-                <Button size="sm" onClick={handleValidate} disabled={!jsonString}>
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                    Validate
-                </Button>
-                </div>
-            </CardHeader>
-            <CardContent className="flex-grow flex flex-col">
-                <Tabs value={activeView} onValueChange={(value) => setActiveView(value as JsonView)} className="flex-grow flex flex-col">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="raw">
-                    <WrapText className="mr-2 h-4 w-4" /> Raw
-                    </TabsTrigger>
-                    <TabsTrigger value="tree" disabled={validationStatus === 'error'}>
-                    <ListTree className="mr-2 h-4 w-4" /> Tree View
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent value="raw" className="flex-grow mt-4">
-                    <Textarea
-                    value={jsonString}
-                    onChange={handleJsonChange}
-                    placeholder="Enter your JSON here..."
-                    className="w-full h-full font-code text-sm resize-none bg-background"
-                    aria-label="JSON Input"
-                    />
-                </TabsContent>
-                <TabsContent value="tree" className="flex-grow mt-4 h-full">
-                    <JsonTreeView data={parsedJson} />
-                </TabsContent>
-                </Tabs>
-            </CardContent>
-            </Card>
+      <div className="flex flex-col gap-6 h-full p-4 md:p-6 lg:p-8">
+        <Card className="flex-grow flex flex-col">
+          <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+              <CardTitle>JSON Input</CardTitle>
+              <CardDescription>Paste your JSON code below. It will be validated automatically.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={handleFormat} disabled={!jsonString || activeView === 'tree'}>
+                  <WrapText className="mr-2 h-4 w-4" />
+                  Format
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleMinify} disabled={!jsonString || activeView === 'tree'}>
+                  <Minimize className="mr-2 h-4 w-4" />
+                  Minify
+              </Button>
+              <Button size="sm" onClick={handleValidate} disabled={!jsonString}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Validate
+              </Button>
+              </div>
+          </CardHeader>
+          <CardContent className="flex-grow flex flex-col">
+              <Tabs value={activeView} onValueChange={(value) => setActiveView(value as JsonView)} className="flex-grow flex flex-col">
+              <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="raw">
+                  <WrapText className="mr-2 h-4 w-4" /> Raw
+                  </TabsTrigger>
+                  <TabsTrigger value="tree" disabled={validationStatus === 'error'}>
+                  <ListTree className="mr-2 h-4 w-4" /> Tree View
+                  </TabsTrigger>
+              </TabsList>
+              <TabsContent value="raw" className="flex-grow mt-4">
+                  <Textarea
+                  value={jsonString}
+                  onChange={handleJsonChange}
+                  placeholder="Enter your JSON here..."
+                  className="w-full h-full font-code text-sm resize-none bg-background"
+                  aria-label="JSON Input"
+                  />
+              </TabsContent>
+              <TabsContent value="tree" className="flex-grow mt-4 h-full">
+                  <JsonTreeView data={parsedJson} />
+              </TabsContent>
+              </Tabs>
+          </CardContent>
+        </Card>
 
-            {validationStatus === "error" && (
-            <Alert variant="destructive">
-                <XCircle className="h-4 w-4" />
-                <AlertTitle>Validation Error</AlertTitle>
-                <AlertDescription className="font-code break-words">{validationMessage}</AlertDescription>
-                <div className="mt-4">
-                <Button onClick={handleExplainError} disabled={isAIExplanationLoading}>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    {isAIExplanationLoading ? "Thinking..." : "Explain with AI"}
-                </Button>
-                </div>
+        {validationStatus === "success" && (
+            <Alert variant="default" className="border-green-500/50 text-green-500">
+                <CheckCircle className="h-4 w-4 !text-green-500" />
+                <AlertTitle>JSON is valid!</AlertTitle>
+                <AlertDescription>No syntax errors detected.</AlertDescription>
             </Alert>
-            )}
+        )}
 
-            {isAIExplanationLoading && (
-            <Card>
-                <CardHeader>
-                <CardTitle>AI Explanation</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-1/4" />
+        {validationStatus === "error" && (
+        <Alert variant="destructive">
+            <XCircle className="h-4 w-4" />
+            <AlertTitle>Validation Error</AlertTitle>
+            <AlertDescription className="font-code break-words">{validationMessage}</AlertDescription>
+            <div className="mt-4">
+            <Button onClick={handleExplainError} disabled={isAIExplanationLoading}>
+                <Wand2 className="mr-2 h-4 w-4" />
+                {isAIExplanationLoading ? "Thinking..." : "Explain with AI"}
+            </Button>
+            </div>
+        </Alert>
+        )}
+
+        {isAIExplanationLoading && (
+        <Card>
+            <CardHeader>
+            <CardTitle>AI Explanation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <div className="pt-4 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
                 <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <div className="pt-4 space-y-2">
-                    <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-4 w-full" />
-                </div>
-                </CardContent>
-            </Card>
-            )}
+            </div>
+            </CardContent>
+        </Card>
+        )}
 
-            {aiExplanation && !isAIExplanationLoading && (
-            <Card className="bg-primary/5 border-primary/20">
-                <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-primary">
-                    <Wand2 className="h-5 w-5" />
-                    AI-Powered Explanation
-                </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                <div>
-                    <h3 className="font-semibold text-foreground mb-2">The Problem</h3>
-                    <p className="text-sm text-muted-foreground">{aiExplanation.explanation}</p>
+        {aiExplanation && !isAIExplanationLoading && (
+        <Card className="bg-primary/5 border-primary/20">
+            <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+                <Wand2 className="h-5 w-5" />
+                AI-Powered Explanation
+            </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+            <div>
+                <h3 className="font-semibold text-foreground mb-2">The Problem</h3>
+                <p className="text-sm text-muted-foreground">{aiExplanation.explanation}</p>
+            </div>
+            <div>
+                <h3 className="font-semibold text-foreground mb-2">Suggested Fix</h3>
+                <div className="font-code bg-muted p-3 rounded-md break-words text-sm text-muted-foreground">
+                <pre><code>{aiExplanation.suggestedFix}</code></pre>
                 </div>
-                <div>
-                    <h3 className="font-semibold text-foreground mb-2">Suggested Fix</h3>
-                    <div className="font-code bg-muted p-3 rounded-md break-words text-sm text-muted-foreground">
-                    <pre><code>{aiExplanation.suggestedFix}</code></pre>
-                    </div>
-                </div>
-                <div className="pt-2">
-                    <Button onClick={handleApplyFix} size="sm">
-                    <Wrench className="mr-2 h-4 w-4" />
-                    Apply Fix
-                    </Button>
-                </div>
-                </CardContent>
-            </Card>
-            )}
-        </div>
-        <div className="lg:col-span-1 flex flex-col gap-6">
-            <JsonConverter />
-            <JsonSecurityTool />
-            <JsonPerformanceAnalyzer />
-        </div>
-      </div>
-    </JsonContext.Provider>
+            </div>
+            <div className="pt-2">
+                <Button onClick={handleApplyFix} size="sm">
+                <Wrench className="mr-2 h-4 w-4" />
+                Apply Fix
+                </Button>
+            </div>
+            </CardContent>
+        </Card>
+        )}
+    </div>
+  </JsonContext.Provider>
   );
 }

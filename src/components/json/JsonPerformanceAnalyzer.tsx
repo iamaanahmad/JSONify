@@ -35,39 +35,39 @@ export function JsonPerformanceAnalyzer() {
     if (!jsonContext || !jsonContext.jsonString) {
         return (
             <div className="flex items-center justify-center h-24 text-muted-foreground p-4 text-center">
-                <p>Provide some JSON to analyze its performance.</p>
+                <p>Provide JSON to analyze.</p>
             </div>
         );
     }
     if (jsonContext.validationStatus !== 'success') {
         return (
             <div className="flex items-center justify-center h-24 text-muted-foreground p-4 text-center">
-                <p>Performance analysis requires valid JSON.</p>
+                <p>Valid JSON required.</p>
             </div>
         );
     }
 
     return (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+        <div className="grid gap-4">
             <div className="flex items-start gap-4">
-                <GaugeCircle className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
+                <GaugeCircle className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                 <div>
-                    <p className="text-2xl font-bold">{(stats.sizeKB).toFixed(2)} KB</p>
-                    <p className="text-sm text-muted-foreground">File Size</p>
+                    <p className="text-xl font-bold">{(stats.sizeKB).toFixed(2)} KB</p>
+                    <p className="text-xs text-muted-foreground">File Size</p>
                 </div>
             </div>
             <div className="flex items-start gap-4">
-                <FileText className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
+                <FileText className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                 <div>
-                    <p className="text-2xl font-bold">{stats.tokenCount.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Est. Tokens</p>
+                    <p className="text-xl font-bold">{stats.tokenCount.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Est. Tokens</p>
                 </div>
             </div>
             {potentialSaving > 0.01 && (
-                 <div className="sm:col-span-2 mt-2 p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                    <h4 className="font-semibold text-primary flex items-center gap-2"><Zap className="h-4 w-4" />Optimization Tip</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        You could save ~<span className="font-bold text-foreground">{potentialSaving.toFixed(2)} KB</span> by minifying this JSON. Less whitespace means faster downloads and lower costs.
+                 <div className="mt-2 p-3 bg-primary/5 border border-primary/10 rounded-lg">
+                    <h4 className="font-semibold text-primary flex items-center gap-2 text-sm"><Zap className="h-4 w-4" />Optimization Tip</h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        You could save ~<span className="font-bold text-foreground">{potentialSaving.toFixed(2)} KB</span> by minifying this JSON.
                     </p>
                  </div>
             )}
@@ -78,8 +78,7 @@ export function JsonPerformanceAnalyzer() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Performance Analyzer</CardTitle>
-        <CardDescription>Benchmark your JSON and get optimization tips.</CardDescription>
+        <CardTitle className="text-base">Analyzer</CardTitle>
       </CardHeader>
       <CardContent>
         {renderContent()}

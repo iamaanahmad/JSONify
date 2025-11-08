@@ -1,13 +1,44 @@
-import { Header } from '@/components/layout/Header';
 import { JsonTool } from '@/components/json/JsonTool';
+import { JsonConverter } from '@/components/json/JsonConverter';
+import { JsonSecurityTool } from '@/components/json/JsonSecurityTool';
+import { JsonPerformanceAnalyzer } from '@/components/json/JsonPerformanceAnalyzer';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { FileJson, Shield, Gauge, GitCommitHorizontal } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Header } from '@/components/layout/Header';
 
 export default function Home() {
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header />
-      <main className="flex-grow p-4 md:p-6 lg:p-8 overflow-hidden">
+    <AppLayout>
+      <AppLayout.Header>
+        <Header />
+      </AppLayout.Header>
+      
+      <AppLayout.Sidebar>
+        <div className="flex flex-col h-full p-4 gap-6">
+          <div className="flex items-center gap-2">
+            <FileJson className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">JSON Tools</h2>
+          </div>
+          <JsonConverter />
+          <Separator />
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Security</h2>
+          </div>
+          <JsonSecurityTool />
+           <Separator />
+           <div className="flex items-center gap-2">
+            <Gauge className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Performance</h2>
+          </div>
+          <JsonPerformanceAnalyzer />
+        </div>
+      </AppLayout.Sidebar>
+
+      <AppLayout.Main>
         <JsonTool />
-      </main>
-    </div>
+      </AppLayout.Main>
+    </AppLayout>
   );
 }
